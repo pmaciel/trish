@@ -28,6 +28,7 @@
  */
 
 
+#include <fstream>
 #include <unordered_map>
 
 #include "CGAL/Delaunay_triangulation_on_sphere_2.h"
@@ -49,6 +50,8 @@ int main(int argc, char* argv[]) {
         {0, 1, 1},   // duplicate of #3
         {1, 0, 1},   //
         {1, 1, 2},   //
+                     //        {1, 1, 0},                                        //
+                     //        {1 + std::sqrt(2) / 2, 1 + std::sqrt(2) / 2, 1},  //
     };
 
     Traits traits({1, 1, 1}, 1);  // sphere center on (1,1,1), with radius 1
@@ -70,10 +73,29 @@ int main(int argc, char* argv[]) {
 
     CGAL_triangulation_assertion(i == tri.number_of_vertices());
 
-    for (auto it = tri.all_faces_begin(); it != tri.all_faces_end(); ++it) {
-        if (!it->is_ghost()) {
-            std::cout << index[it->vertex(0)] << " " << index[it->vertex(1)] << " " << index[it->vertex(2)] << '\n';
+    {
+        std::ofstream out("trish.msh");
+
+        out << "$MeshFormat\n"
+            << "2.2 0 " << sizeof(double) << '\n'
+            << "$EndMeshFormat\n";
+
+        out << "$Nodes\n" << tri.number_of_vertices() << '\n';
+        size_t i = 0;
+        for (auto it = tri.vertices_begin(); it != tri.vertices_end(); ++it) {
+            out << i++ << " " << *it << '\n';
         }
+        out << "$EndNodes\n";
+
+        out << "$Elements\n" << (tri.number_of_faces() - tri.number_of_ghost_faces()) << '\n';
+        size_t j = 0;
+        for (auto it = tri.all_faces_begin(); it != tri.all_faces_end(); ++it) {
+            if (!it->is_ghost()) {
+                out << j++ << " 2 4 1 1 1 0 " << index[it->vertex(0)] << " " << index[it->vertex(1)] << " "
+                    << index[it->vertex(2)] << '\n';
+            }
+        }
+        out << "$EndElements\n";
     }
 
 
