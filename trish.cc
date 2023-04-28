@@ -28,19 +28,20 @@
  */
 
 
+#include <unordered_map>
+
 #include "CGAL/Delaunay_triangulation_on_sphere_2.h"
 #include "CGAL/Delaunay_triangulation_on_sphere_traits_2.h"
 #include "CGAL/Exact_predicates_inexact_constructions_kernel.h"
 
 
-using K       = CGAL::Exact_predicates_inexact_constructions_kernel;
-using Traits  = CGAL::Delaunay_triangulation_on_sphere_traits_2<K>;
-using DToS2   = CGAL::Delaunay_triangulation_on_sphere_2<Traits>;
-using Point_3 = Traits::Point_3;
+using Kernel        = CGAL::Exact_predicates_inexact_constructions_kernel;
+using Traits        = CGAL::Delaunay_triangulation_on_sphere_traits_2<Kernel>;
+using Triangulation = CGAL::Delaunay_triangulation_on_sphere_2<Traits>;
 
 
 int main(int argc, char* argv[]) {
-    std::vector<Point_3> points{
+    std::vector<Traits::Point_3> points{
         {2, 1, 1},   //
         {-2, 1, 1},  // not on the sphere
         {0, 1, 1},   //
@@ -52,22 +53,29 @@ int main(int argc, char* argv[]) {
 
     Traits traits({1, 1, 1}, 1);  // sphere center on (1,1,1), with radius 1
 
-    DToS2 dtos(traits);
-    for (const Point_3& pt : points) {
-        std::cout << "Inserting (" << pt << ") at squared distance " << CGAL::squared_distance(pt, traits.center())
-                  << " from the center of the sphere; is it on there sphere? "
-                  << (traits.is_on_sphere(pt) ? "yes" : "no") << std::endl;
-        dtos.insert(pt);
+    Triangulation tri(points.begin(), points.end(), traits);
 
-        std::cout << "After insertion, the dimension of the triangulation is: " << dtos.dimension() << "\n";
-        std::cout << "It has:\n";
-        std::cout << dtos.number_of_vertices() << " vertices\n";
-        std::cout << dtos.number_of_edges() << " edges\n";
-        std::cout << dtos.number_of_faces() << " solid faces\n";
-        std::cout << dtos.number_of_ghost_faces() << " ghost faces\n" << std::endl;
+    std::cout << "dimension: " << tri.dimension() << '\n'
+              << "number_of_vertices: " << tri.number_of_vertices() << '\n'
+              << "number_of_edges: " << tri.number_of_edges() << '\n'
+              << "number_of_faces: " << tri.number_of_faces() << '\n'
+              << "number_of_ghost_faces: " << tri.number_of_ghost_faces() << std::endl;
+
+
+    std::unordered_map<Triangulation::Vertex_handle, Triangulation::size_type> index;
+    Triangulation::size_type i = 0;
+    for (auto it = tri.vertices_begin(); it != tri.vertices_end(); ++it) {
+        index[it] = i++;
     }
 
-    CGAL::IO::write_OFF(std::cout, dtos, CGAL::parameters::stream_precision(17));
+    CGAL_triangulation_assertion(i == tri.number_of_vertices());
 
-    return EXIT_SUCCESS;
+    for (auto it = tri.all_faces_begin(); it != tri.all_faces_end(); ++it) {
+        if (!it->is_ghost()) {
+            std::cout << index[it->vertex(0)] << " " << index[it->vertex(1)] << " " << index[it->vertex(2)] << '\n';
+        }
+    }
+
+
+    return 0;
 }
