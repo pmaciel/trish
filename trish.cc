@@ -30,18 +30,56 @@
 
 #include <fstream>
 #include <unordered_map>
+#include <vector>
+
+#include "CGAL/Triangulation_on_sphere_vertex_base_2.h"
 
 #include "CGAL/Delaunay_triangulation_on_sphere_2.h"
 #include "CGAL/Delaunay_triangulation_on_sphere_traits_2.h"
 #include "CGAL/Exact_predicates_inexact_constructions_kernel.h"
 
 
-using Kernel        = CGAL::Exact_predicates_inexact_constructions_kernel;
-using Traits        = CGAL::Delaunay_triangulation_on_sphere_traits_2<Kernel>;
-using Triangulation = CGAL::Delaunay_triangulation_on_sphere_2<Traits>;
+using Kernel = CGAL::Exact_predicates_inexact_constructions_kernel;
+using Traits = CGAL::Delaunay_triangulation_on_sphere_traits_2<Kernel>;
+
+using Vb            = CGAL::Triangulation_on_sphere_vertex_base_2<Traits>;
+using Fb            = CGAL::Triangulation_on_sphere_face_base_2<Traits>;
+using Tds           = CGAL::Triangulation_data_structure_2<Vb, Fb>;
+using Triangulation = CGAL::Delaunay_triangulation_on_sphere_2<Traits, Tds>;
+
+
+#include "CGAL/Delaunay_triangulation_2.h"
+#include "CGAL/Triangulation_vertex_base_with_info_2.h"
+
+
+void another() {
+    using Vb        = CGAL::Triangulation_vertex_base_with_info_2<std::string, Kernel>;
+    using Tds       = CGAL::Triangulation_data_structure_2<Vb>;
+    using Delaunay  = CGAL::Delaunay_triangulation_2<Kernel, Tds>;
+    using PointInfo = std::pair<Delaunay::Point, std::string>;
+
+
+    std::vector<PointInfo> points{
+        {{0, 0}, "x0"}, {{1, 0}, "x1"}, {{0, 1}, "x2"}, {{4, 10}, "x3"}, {{2, 2}, "x4"}, {{-1, 0}, "x5"},
+    };
+
+    size_t i = 0;
+    for (const auto& pp : points) {
+        std::cout << i++ << " {" << pp.first << ", " << pp.second << '}' << std::endl;
+    }
+
+    Delaunay T;
+    T.insert(points.begin(), points.end());
+
+    for (auto v : T.finite_vertex_handles()) {
+        std::cout << v->point() << ", " << v->info() << std::endl;
+    }
+}
 
 
 int main(int argc, char* argv[]) {
+    another();
+
     std::vector<Traits::Point_3> points{
         {2, 1, 1},   //
         {-2, 1, 1},  // not on the sphere
@@ -50,8 +88,11 @@ int main(int argc, char* argv[]) {
         {0, 1, 1},   // duplicate of #3
         {1, 0, 1},   //
         {1, 1, 2},   //
-                     //        {1, 1, 0},                                        //
-                     //        {1 + std::sqrt(2) / 2, 1 + std::sqrt(2) / 2, 1},  //
+        // {1, 1, 0},                                        //
+        // {1 + std::sqrt(2) / 2, 1 + std::sqrt(2) / 2, 1},  //
+        // {1 - std::sqrt(2) / 2, 1 + std::sqrt(2) / 2, 1},  //
+        // {1 - std::sqrt(2) / 2, 1 - std::sqrt(2) / 2, 1},  //
+        // {1 + std::sqrt(2) / 2, 1 - std::sqrt(2) / 2, 1},  //
     };
 
     Traits traits({1, 1, 1}, 1);  // sphere center on (1,1,1), with radius 1
@@ -82,14 +123,14 @@ int main(int argc, char* argv[]) {
 
         out << "$Nodes\n" << tri.number_of_vertices() << '\n';
         size_t i = 0;
-        for (auto it = tri.vertices_begin(); it != tri.vertices_end(); ++it) {
+        for (auto it : tri.vertex_handles()) {
             out << i++ << " " << *it << '\n';
         }
         out << "$EndNodes\n";
 
         out << "$Elements\n" << (tri.number_of_faces() - tri.number_of_ghost_faces()) << '\n';
         size_t j = 0;
-        for (auto it = tri.all_faces_begin(); it != tri.all_faces_end(); ++it) {
+        for (auto it : tri.all_face_handles()) {
             if (!it->is_ghost()) {
                 out << j++ << " 2 4 1 1 1 0 " << index[it->vertex(0)] << " " << index[it->vertex(1)] << " "
                     << index[it->vertex(2)] << '\n';
