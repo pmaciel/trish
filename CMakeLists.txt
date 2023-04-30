@@ -13,6 +13,6 @@ endif()
 find_package(CGAL 5.2 REQUIRED)
 
 
-add_executable(trish trish.cc)
+add_executable(trish a.cc b.cc trish.cc)
 target_link_libraries(trish CGAL)
 

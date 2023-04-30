@@ -28,12 +28,36 @@
  */
 
 
-int main(int argc, char* argv[]) {
-    void a();
-    void b();
+#include <iostream>
+#include <vector>
 
-    a();
-    b();
+#include "CGAL/Delaunay_triangulation_2.h"
+#include "CGAL/Exact_predicates_inexact_constructions_kernel.h"
+#include "CGAL/Triangulation_data_structure_2.h"
+#include "CGAL/Triangulation_vertex_base_with_info_2.h"
 
-    return 0;
+
+void a() {
+    using Kernel        = CGAL::Exact_predicates_inexact_constructions_kernel;
+    using Vb            = CGAL::Triangulation_vertex_base_with_info_2<std::string, Kernel>;
+    using Tds           = CGAL::Triangulation_data_structure_2<Vb>;
+    using Triangulation = CGAL::Delaunay_triangulation_2<Kernel, Tds>;
+    using PointInfo     = std::pair<Triangulation::Point, std::string>;
+
+
+    std::vector<PointInfo> points{
+        {{0, 0}, "x0"}, {{1, 0}, "x1"}, {{0, 1}, "x2"}, {{4, 10}, "x3"}, {{2, 2}, "x4"}, {{-1, 0}, "x5"},
+    };
+
+    size_t i = 0;
+    for (const auto& pp : points) {
+        std::cout << i++ << " {" << pp.first << ", " << pp.second << '}' << std::endl;
+    }
+
+    Triangulation tri;
+    tri.insert(points.begin(), points.end());
+
+    for (auto v : tri.finite_vertex_handles()) {
+        std::cout << v->point() << ", " << v->info() << std::endl;
+    }
 }
