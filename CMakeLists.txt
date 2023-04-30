@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
-project(trish VERSION 0.0.0 LANGUAGES CXX)
+project(trish VERSION 0.0.0 LANGUAGES CXX Fortran)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -15,4 +15,8 @@ find_package(CGAL 5.2 REQUIRED)
 
 add_executable(trish a.cc b.cc trish.cc)
 target_link_libraries(trish CGAL)
+
+
+add_executable(stripack stripack/src.f stripack/driver.f stripack/i1mach.f)
+target_link_libraries(stripack)
 
