@@ -30,8 +30,5 @@ add_executable(stripack
     stripack/swap.f90
     stripack/swptst.f90
     stripack/trfind.f90
-    stripack/trlist.f90
-    stripack/trlprt.f90
-    stripack/trmesh.f90
     stripack/stritest.f90)
 
