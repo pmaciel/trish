@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
     void a();
     void b();
 
-    a();
+    //    a();
     b();
 
     return 0;

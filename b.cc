@@ -30,6 +30,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <random>
 #include <unordered_map>
 #include <vector>
 
@@ -48,24 +49,45 @@ void b() {
     using Tds           = CGAL::Triangulation_data_structure_2<Vb, Fb>;
     using Triangulation = CGAL::Delaunay_triangulation_on_sphere_2<Traits, Tds>;
 
-    std::vector<Traits::Point_3> points{
-        {2, 1, 1},   //
-        {-2, 1, 1},  // not on the sphere
-        {0, 1, 1},   //
-        {1, 2, 1},   //
-        {0, 1, 1},   // duplicate of #3
-        {1, 0, 1},   //
-        {1, 1, 2},   //
-        // {1, 1, 0},                                        //
-        // {1 + std::sqrt(2) / 2, 1 + std::sqrt(2) / 2, 1},  //
-        // {1 - std::sqrt(2) / 2, 1 + std::sqrt(2) / 2, 1},  //
-        // {1 - std::sqrt(2) / 2, 1 - std::sqrt(2) / 2, 1},  //
-        // {1 + std::sqrt(2) / 2, 1 - std::sqrt(2) / 2, 1},  //
+    //    std::vector<Traits::Point_3> points{
+    //        {2, 1, 1},   //
+    //        {-2, 1, 1},  // not on the sphere
+    //        {0, 1, 1},   //
+    //        {1, 2, 1},   //
+    //        {0, 1, 1},   // duplicate of #3
+    //        {1, 0, 1},   //
+    //        {1, 1, 2},   //
+    //        // {1, 1, 0},                                        //
+    //        // {1 + std::sqrt(2) / 2, 1 + std::sqrt(2) / 2, 1},  //
+    //        // {1 - std::sqrt(2) / 2, 1 + std::sqrt(2) / 2, 1},  //
+    //        // {1 - std::sqrt(2) / 2, 1 - std::sqrt(2) / 2, 1},  //
+    //        // {1 + std::sqrt(2) / 2, 1 - std::sqrt(2) / 2, 1},  //
+    //    };
+
+    auto rnd = []() -> Traits::Point_3 {
+        static std::random_device rd{};
+        static std::mt19937 gen{rd()};
+        static std::normal_distribution<double> d{0., 2};
+
+        for (;;) {
+            auto x = d(gen);
+            auto y = d(gen);
+            auto z = d(gen);
+
+            if (auto norm = std::sqrt(x * x + y * y + z * z); norm > 0) {
+                return {x / norm, y / norm, z / norm};
+            }
+        }
     };
 
-    Traits traits({1, 1, 1}, 1);  // sphere center on (1,1,1), with radius 1
 
-    Triangulation tri(points.begin(), points.end(), traits);
+    Traits traits({0, 0, 0}, 1);  // sphere center on (1,1,1), with radius 1
+
+    Triangulation tri(traits);
+
+    for (size_t c = 0; c < 100; c++) {
+        tri.insert(rnd());
+    }
 
     std::cout << "dimension: " << tri.dimension() << '\n'
               << "number_of_vertices: " << tri.number_of_vertices() << '\n'
@@ -77,6 +99,7 @@ void b() {
     std::unordered_map<Triangulation::Vertex_handle, Triangulation::size_type> index;
     Triangulation::size_type i = 0;
     for (auto it = tri.vertices_begin(); it != tri.vertices_end(); ++it) {
+        std::cout << (*it) << std::endl;
         index[it] = i++;
     }
 
