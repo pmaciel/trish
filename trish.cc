@@ -31,9 +31,11 @@
 int main(int argc, char* argv[]) {
     void a();
     void b();
+    void c();
 
     //    a();
-    b();
+    //    b();
+    c();
 
     return 0;
 }

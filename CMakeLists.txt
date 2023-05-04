@@ -11,10 +11,12 @@ endif()
 
 
 find_package(CGAL 5.2 REQUIRED)
+find_package(Qhull REQUIRED)
 
 
-add_executable(trish a.cc b.cc trish.cc)
-target_link_libraries(trish CGAL)
+add_executable(trish a.cc b.cc c.cc trish.cc)
+target_link_libraries(trish CGAL qhull_r qhullcpp)
+target_link_directories(trish PRIVATE "${Qhull_DIR}/../..")
 
 
 add_executable(stripack
