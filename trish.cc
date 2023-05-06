@@ -32,10 +32,12 @@ int main(int argc, char* argv[]) {
     void a();
     void b();
     void c();
+    void d();
 
     //    a();
     //    b();
-    c();
+    //    c();
+    d();
 
     return 0;
 }
